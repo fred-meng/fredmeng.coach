@@ -32,7 +32,7 @@ jobs:
     - name: Setup Hugo
       uses: peaceiris/actions-hugo@v2
       with:
-        hugo-version: '0.62.2'
+        hugo-version: '0.69.0'
         # extended: true
 
 # hugo 编译生成静态网页 public目录内的内容
@@ -42,8 +42,7 @@ jobs:
 # 准备 连接到 google 云
     - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       with:
-        version: '285.0.0'
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        version: 'latest'
         service_account_email: ${{ secrets.GCP_SA_EMAIL }}
         service_account_key: ${{ secrets.GCP_SA_KEY }}
         export_default_credentials: true
