@@ -1,0 +1,56 @@
+# This is a basic workflow to help you get started with Actions
+
+name: build hugo and deploy to google cloud platform (storage)
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# 环境变量的设置，下面会用到
+env:
+  GCP_SA_EMAIL: ${{ secrets.GCP_SA_EMAIL }}
+  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+  GCP_BUCKET: www.fredmeng.coach
+  
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  setup-deploy:
+    name: Setup and Deploy
+    runs-on: ubuntu-latest
+    steps:
+
+# 检出master分支的代码 checkout
+    - name: Checkout
+      uses: actions/checkout@v2
+
+# 准备hugo环境
+# hugo ready & build
+    - name: Setup Hugo
+      uses: peaceiris/actions-hugo@v2
+      with:
+        hugo-version: '0.62.2'
+        # extended: true
+
+# hugo 编译生成静态网页 public目录内的内容
+    - run: hugo --minify
+
+# deploy to google storage
+# 准备 连接到 google 云
+    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '285.0.0'
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+# 检查 google 云的连接结果
+    - run: gcloud info
+# 用 gsutil 推送 public 目录内容到谷歌云存储
+    - run: gsutil -m rsync -d -c -r public gs://$GCP_BUCKET
+    - run: gsutil -m setmeta -h "Cache-Control:public, max-age=3600" gs://$GCP_BUCKET/**/*.html
+    - run: gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" gs://$GCP_BUCKET/js/*.js
+    - run: gsutil -m setmeta -h "Cache-Control:public, max-age=31536000" gs://$GCP_BUCKET/css/*.css
