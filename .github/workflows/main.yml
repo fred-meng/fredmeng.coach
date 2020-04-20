@@ -27,7 +27,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-# 准备hugo环境
+# 准备hugo环境 
 # hugo ready & build
     - name: Setup Hugo
       uses: peaceiris/actions-hugo@v2
